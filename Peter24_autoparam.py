@@ -142,7 +142,6 @@ else:
                            "light_doc":light_doc_col,
                            "light_water":light_water_col})
     params.to_csv("Peter Parameterization/results.csv", index = False)
-    
     del params, p_max, IP, theta_npp, theta_r, sed_sink, resp_docl,resp_docr,resp_poc, settling_rate, sediment_rate, light_poc, light_doc,light_water
 
 # model run
@@ -266,14 +265,6 @@ while len(next(os.walk('Peter Parameterization/outputs'))[1]) <= total_runs:
         mean_depth = sum(volume)/max(area),
         W_str = None)
 
-print(f"Step: {t}, Date: {meteo['date'][t]}")
-
-# Debug check for NaNs in any result
-if any(np.isnan(res[k]).any() for k in res):
-    print(f"NaNs detected at time {t} in result keys: {[k for k in res if np.isnan(res[k]).any()]}")
-    break
-
-    
     temp=  res['temp']
     o2=  res['o2']
     docr=  res['docr']
@@ -306,12 +297,16 @@ if any(np.isnan(res[k]).any() for k in res):
     doc_all = np.add(docl, docr)
     poc_all = np.add(pocl, pocr)
     
-    
+    print("temp shape:", temp.shape)
+    print("temp dtype:", temp.dtype)
+    print("temp values (first row):", temp[0, :10])
+    print("Non-NaN per column:", np.sum(~np.isnan(temp), axis=0))
+    print("Total non-NaN values:", np.sum(~np.isnan(temp)))
+        
     run_folder = f"Peter Parameterization/outputs/Run_{i+1}"
     os.makedirs(run_folder, exist_ok=True)
-
-# Convert depth to rounded labels for index
-    depth_labels = [round(d, 2) for d in depth]
+   
+  depth_labels = [round(d, 2) for d in depth]
 
 # Save each variable with depth as index, time as columns
     
@@ -320,16 +315,23 @@ if any(np.isnan(res[k]).any() for k in res):
     pd.DataFrame(doc_all, index=depth_labels, columns=times).to_csv(f"{run_folder}/doc.csv")
     pd.DataFrame(poc_all, index=depth_labels, columns=times).to_csv(f"{run_folder}/poc.csv")
     pd.DataFrame(secchi).to_csv(f"{run_folder}/secchi.csv", index = False)
+   
+ #save withouth labels, still not working 
+    #pd.DataFrame(temp).to_csv(f"{run_folder}/temp.csv",index= False)
+    #pd.DataFrame(o2).to_csv(f"{run_folder}/do.csv",index= False)
+    #pd.DataFrame(doc_all).to_csv(f"{run_folder}/doc.csv",index= False)
+    #pd.DataFrame(poc_all).to_csv(f"{run_folder}/poc.csv",index= False)
+    #pd.DataFrame(secchi).to_csv(f"{run_folder}/secchi.csv", index = False)
     
-## trying to save a different way, this was the original 
-    #os.mkdir("../parameterization/output/Run_"+str(i+1))
-    #pd.DataFrame(temp).to_csv("../parameterization/output/Run_"+str(i+1)+"/temp.csv", index = False)
-   # pd.DataFrame(o2).to_csv("../parameterization/output/Run_"+str(i+1)+"/do.csv", index = False)
-   # pd.DataFrame(doc_all).to_csv("../parameterization/output/Run_"+str(i+1)+"/doc.csv", index = False)
-   # pd.DataFrame(poc_all).to_csv("../parameterization/output/Run_"+str(i+1)+"/poc.csv", index = False)
-   # pd.DataFrame(secchi).to_csv("../parameterization/output/Run_"+str(i+1)+"/secchi.csv", index = False)
+## trying to save a different way, this was the original, still had issues saving
+   # os.mkdir("Peter Parameterization/outputs/Run_"+str(i+1))
+    #pd.DataFrame(temp).to_csv("Peter Parameterization/outputs/Run_"+str(i+1)+"/temp.csv", index = False)
+    #pd.DataFrame(o2).to_csv("Peter Parameterization/outputs/Run_"+str(i+1)+"/do.csv", index = False)
+    #pd.DataFrame(doc_all).to_csv("Peter Parameterization/outputs/Run_"+str(i+1)+"/doc.csv", index = False)
+    #pd.DataFrame(poc_all).to_csv("Peter Parameterization/outputs/Run_"+str(i+1)+"/poc.csv", index = False)
+    #pd.DataFrame(secchi).to_csv("Peter Parameterization/outputs/Run_"+str(i+1)+"/secchi.csv", index = False)
     
-    del p_max, IP, theta_npp, theta_r, sed_sink, resp_docl, resp_poc, settling_rate, sediment_rate, light_poc, temp, o2, docr, docl, doc_all, pocr, pocl, poc_all, secchi
+    del p_max, IP, theta_npp, theta_r, sed_sink, resp_docl,resp_docr, resp_poc, settling_rate, sediment_rate, light_poc, light_water, light_doc,temp, o2, docr, docl, doc_all, pocr, pocl, poc_all, secchi
     
     print("Run " + str(i+1) + " finished at " + str(datetime.datetime.now()))
     looptimeend = datetime.datetime.now()
@@ -342,8 +344,6 @@ if any(np.isnan(res[k]).any() for k in res):
     del i, looplengthdiff, looptimeend, looptimestart
     gc.collect()
         
-
-
 
 #End = datetime.datetime.now()
 #print(End - Start)
